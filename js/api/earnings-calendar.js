@@ -6,38 +6,69 @@
 const EarningsCalendar = (() => {
 
   /**
-   * Attempt to parse the WhisperNumber calendar page via a CORS proxy.
+   * Attempt to parse the WhisperNumber calendar page.
+   * Tries the Yahoo proxy server first (server-side fetch, no CORS issues),
+   * then falls back to public CORS proxies.
    * Returns array of { ticker, date, time, epsEstimate, whisperNumber, hasWhisper, marketCap, sector }.
    */
   async function fetchFromWhisperNumber(weekOfDate) {
     Logger.info('Fetching earnings calendar from WhisperNumber…');
     const targetUrl = 'https://thewhispernumber.com/calendar';
-    const proxies = [
-      { name: 'corsproxy.org', url: 'https://corsproxy.org/?' },
-      { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' },
-      { name: 'corsproxy.io', url: 'https://corsproxy.io/?' },
-    ];
 
     let html = null;
-    for (const proxy of proxies) {
+
+    // Strategy 1: fetch via the Yahoo proxy server (server-side, avoids CORS entirely)
+    const yahooProxyUrl = Config.get('yahooProxyUrl');
+    if (yahooProxyUrl) {
       try {
-        Logger.info(`Trying CORS proxy: ${proxy.name}`);
-        const resp = await fetch(proxy.url + encodeURIComponent(targetUrl), {
-          signal: AbortSignal.timeout(20000),
+        Logger.info('Trying calendar via Yahoo proxy server');
+        const resp = await fetch(`${yahooProxyUrl}/api/calendar`, {
+          signal: AbortSignal.timeout(25000),
         });
         if (resp.ok) {
           const text = await resp.text();
-          if (text.length > 0 && !text.includes('"error"')) {
+          if (text.length > 500) {
             html = text;
-            Logger.info(`Successfully fetched calendar via ${proxy.name} (${text.length} bytes)`);
-            break;
+            Logger.info(`Successfully fetched calendar via Yahoo proxy (${text.length} bytes)`);
+          } else {
+            Logger.warn(`Yahoo proxy calendar response too short (${text.length} bytes)`);
           }
-          Logger.warn(`Proxy ${proxy.name} returned non-HTML response: ${text.substring(0, 120)}`);
         } else {
-          Logger.warn(`Proxy ${proxy.name} returned HTTP ${resp.status}`);
+          Logger.warn(`Yahoo proxy calendar returned HTTP ${resp.status}`);
         }
       } catch (e) {
-        Logger.warn(`Proxy ${proxy.name} failed: ${e.message || e}`);
+        Logger.warn(`Yahoo proxy calendar failed: ${e.message || e}`);
+      }
+    }
+
+    // Strategy 2: try public CORS proxies
+    if (!html) {
+      const proxies = [
+        { name: 'corsproxy.io', url: 'https://corsproxy.io/?' },
+        { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' },
+        { name: 'cors.lol', url: 'https://api.cors.lol/?url=' },
+      ];
+
+      for (const proxy of proxies) {
+        try {
+          Logger.info(`Trying CORS proxy: ${proxy.name}`);
+          const resp = await fetch(proxy.url + encodeURIComponent(targetUrl), {
+            signal: AbortSignal.timeout(20000),
+          });
+          if (resp.ok) {
+            const text = await resp.text();
+            if (text.length > 500 && !text.includes('"error"')) {
+              html = text;
+              Logger.info(`Successfully fetched calendar via ${proxy.name} (${text.length} bytes)`);
+              break;
+            }
+            Logger.warn(`Proxy ${proxy.name} returned non-HTML or error response (${text.length} bytes)`);
+          } else {
+            Logger.warn(`Proxy ${proxy.name} returned HTTP ${resp.status}`);
+          }
+        } catch (e) {
+          Logger.warn(`Proxy ${proxy.name} failed: ${e.message || e}`);
+        }
       }
     }
 

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Earnings Trading Analyzer — 3-Day Rolling</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/trade-cards.css">
+  <link rel="stylesheet" href="css/network.css">
+  <link rel="stylesheet" href="css/charts.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body>
+  <div id="app">
+    <!-- Top navigation bar -->
+    <header id="top-bar">
+      <div class="bar-left">
+        <h1 class="logo">EarningsEdge<span class="logo-accent">Pro</span></h1>
+      </div>
+      <div class="bar-center">
+        <div id="date-selector">
+          <button class="date-nav" id="btn-prev-day">&larr;</button>
+          <div id="date-tabs" class="date-tabs"></div>
+          <button class="date-nav" id="btn-next-day">&rarr;</button>
+        </div>
+      </div>
+      <div class="bar-right">
+        <span id="market-status" class="status-badge">Market Closed</span>
+        <span id="last-refresh" class="meta-text">--</span>
+        <button id="btn-refresh" class="btn-icon" title="Refresh data">⟳</button>
+        <button id="btn-settings" class="btn-icon" title="Settings">⚙</button>
+      </div>
+    </header>
+
+    <!-- Settings overlay -->
+    <div id="settings-overlay" class="overlay hidden">
+      <div class="overlay-content settings-panel">
+        <h2>API Configuration</h2>
+        <button id="btn-close-settings" class="btn-close">&times;</button>
+        <div class="form-group">
+          <label for="input-tradier-token">Tradier API Token</label>
+          <input type="password" id="input-tradier-token" placeholder="Bearer token…">
+          <small>Sandbox or production token. Greeks courtesy of ORATS.</small>
+        </div>
+        <div class="form-group">
+          <label for="input-tradier-env">Tradier Environment</label>
+          <select id="input-tradier-env">
+            <option value="sandbox">Sandbox (delayed)</option>
+            <option value="production">Production (live)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="input-news-provider">News Provider</label>
+          <select id="input-news-provider">
+            <option value="none">None (skip news)</option>
+            <option value="benzinga">Benzinga</option>
+            <option value="alphavantage">Alpha Vantage</option>
+            <option value="polygon">Polygon</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="input-news-token">News API Key</label>
+          <input type="password" id="input-news-token" placeholder="API key…">
+        </div>
+        <div class="form-group">
+          <label for="input-auto-refresh">Auto-refresh interval (seconds)</label>
+          <input type="number" id="input-auto-refresh" value="300" min="30" max="3600">
+        </div>
+        <div class="form-group">
+          <label><input type="checkbox" id="input-exclude-illiquid" checked> Exclude illiquid options (spread &gt; 50%)</label>
+        </div>
+        <div class="form-group">
+          <label><input type="checkbox" id="input-use-whisper" checked> Include whisper-number adjustments</label>
+        </div>
+        <button id="btn-save-settings" class="btn-primary">Save &amp; Reload</button>
+      </div>
+    </div>
+
+    <!-- Summary stats bar -->
+    <section id="summary-bar">
+      <div class="stat-card">
+        <span class="stat-label">Stocks in Scope</span>
+        <span class="stat-value" id="stat-total">--</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Optionable</span>
+        <span class="stat-value" id="stat-optionable">--</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">With Whisper</span>
+        <span class="stat-value" id="stat-whisper">--</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Avg IV Percentile</span>
+        <span class="stat-value" id="stat-avg-iv">--</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Best Edge</span>
+        <span class="stat-value" id="stat-best-edge">--</span>
+      </div>
+    </section>
+
+    <!-- Main content area: tabs -->
+    <nav id="view-tabs">
+      <button class="view-tab active" data-view="dashboard">Dashboard</button>
+      <button class="view-tab" data-view="trade-cards">Trade Cards</button>
+      <button class="view-tab" data-view="network">3D Network</button>
+      <button class="view-tab" data-view="pipeline-log">Pipeline Log</button>
+    </nav>
+
+    <!-- Dashboard view -->
+    <section id="view-dashboard" class="view active">
+      <div class="dash-grid">
+        <div class="dash-panel" id="panel-price-movers">
+          <h3>Price Movers — Prior Day</h3>
+          <div id="price-movers-content" class="scrollable-table"></div>
+        </div>
+        <div class="dash-panel" id="panel-earnings-today">
+          <h3>Earnings Today (BMO &amp; AMC)</h3>
+          <div id="earnings-today-content" class="scrollable-table"></div>
+        </div>
+        <div class="dash-panel" id="panel-earnings-tomorrow">
+          <h3>Earnings Tomorrow</h3>
+          <div id="earnings-tomorrow-content" class="scrollable-table"></div>
+        </div>
+        <div class="dash-panel" id="panel-iv-heatmap">
+          <h3>IV Richness Heatmap</h3>
+          <canvas id="canvas-iv-heatmap"></canvas>
+        </div>
+        <div class="dash-panel" id="panel-top-trades">
+          <h3>Top 5 Trade Opportunities</h3>
+          <div id="top-trades-content"></div>
+        </div>
+        <div class="dash-panel" id="panel-sector-correlation">
+          <h3>Sector Correlation Matrix</h3>
+          <canvas id="canvas-sector-corr"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trade cards view -->
+    <section id="view-trade-cards" class="view hidden">
+      <div class="trade-cards-toolbar">
+        <input type="text" id="filter-ticker" placeholder="Filter by ticker…">
+        <select id="filter-tier">
+          <option value="all">All Tiers</option>
+          <option value="1">Tier 1 (Mega Cap)</option>
+          <option value="2">Tier 2 (Large Cap + Whisper)</option>
+          <option value="3">Tier 3 (Mid Cap + Whisper)</option>
+        </select>
+        <select id="sort-cards">
+          <option value="edge">Best Edge</option>
+          <option value="iv">Highest IV</option>
+          <option value="move">Largest Implied Move</option>
+          <option value="mcap">Market Cap</option>
+        </select>
+      </div>
+      <div id="trade-cards-container" class="trade-cards-grid"></div>
+    </section>
+
+    <!-- 3D Network view -->
+    <section id="view-network" class="view hidden">
+      <div id="network-toolbar">
+        <label>Time Slider:</label>
+        <input type="range" id="network-time-slider" min="0" max="7" step="1" value="0">
+        <span id="network-time-label">Day 0</span>
+        <button id="btn-network-reset-cam" class="btn-sm">Reset Camera</button>
+        <button id="btn-network-export" class="btn-sm">Export PNG</button>
+      </div>
+      <div id="network-container"></div>
+      <div id="network-legend">
+        <h4>Zones</h4>
+        <div class="legend-item"><span class="dot red"></span>Negative Earnings Expectation</div>
+        <div class="legend-item"><span class="dot green"></span>Positive Earnings Expectation</div>
+        <div class="legend-item"><span class="dot yellow"></span>High Vol Decoupling (IV&gt;90th)</div>
+        <div class="legend-item"><span class="dot blue"></span>News-Driven (&gt;3 headlines)</div>
+        <div class="legend-item"><span class="dot purple"></span>Inter-market Transmission</div>
+        <h4>Edges</h4>
+        <div class="legend-item"><span class="line red-line"></span>Negative Contagion</div>
+        <div class="legend-item"><span class="line green-line"></span>Positive Contagion</div>
+        <div class="legend-item"><span class="line gray-line"></span>Neutral</div>
+        <div class="legend-item"><span class="line blue-line"></span>Supply Chain</div>
+      </div>
+      <div id="network-tooltip" class="tooltip hidden"></div>
+      <div id="network-stats" class="stats-panel">
+        <div>Density: <span id="net-density">--</span></div>
+        <div>Avg Corr: <span id="net-avg-corr">--</span></div>
+        <div>Central Node: <span id="net-central">--</span></div>
+      </div>
+    </section>
+
+    <!-- Pipeline log view -->
+    <section id="view-pipeline-log" class="view hidden">
+      <div id="pipeline-log" class="log-panel"></div>
+    </section>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="overlay hidden">
+      <div class="loader-content">
+        <div class="spinner"></div>
+        <p id="loading-message">Initializing analysis pipeline…</p>
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        <p id="loading-detail" class="meta-text"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Third-party libs (CDN for GitHub Pages) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Application modules -->
+  <script src="js/utils/config.js"></script>
+  <script src="js/utils/dates.js"></script>
+  <script src="js/utils/math.js"></script>
+  <script src="js/utils/logger.js"></script>
+  <script src="js/api/tradier.js"></script>
+  <script src="js/api/earnings-calendar.js"></script>
+  <script src="js/api/news.js"></script>
+  <script src="js/analysis/implied-move.js"></script>
+  <script src="js/analysis/iv-richness.js"></script>
+  <script src="js/analysis/iv-crush.js"></script>
+  <script src="js/analysis/historical-moves.js"></script>
+  <script src="js/analysis/term-structure.js"></script>
+  <script src="js/analysis/greeks.js"></script>
+  <script src="js/analysis/price-targets.js"></script>
+  <script src="js/analysis/liquidity.js"></script>
+  <script src="js/analysis/news-analysis.js"></script>
+  <script src="js/analysis/backtest.js"></script>
+  <script src="js/analysis/pipeline.js"></script>
+  <script src="js/ui/dashboard.js"></script>
+  <script src="js/ui/trade-cards-ui.js"></script>
+  <script src="js/ui/settings.js"></script>
+  <script src="js/ui/charts.js"></script>
+  <script src="js/network/network-graph.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

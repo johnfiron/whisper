@@ -1,0 +1,178 @@
+/* ===== Trade Cards ===== */
+.trade-cards-toolbar {
+  display: flex;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.trade-cards-toolbar input,
+.trade-cards-toolbar select {
+  padding: 6px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.trade-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 1rem;
+}
+
+.trade-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+.trade-card:hover { border-color: var(--accent-blue); }
+.trade-card.tier-1 { border-left: 3px solid var(--accent-purple); }
+.trade-card.tier-2 { border-left: 3px solid var(--accent-blue); }
+.trade-card.tier-3 { border-left: 3px solid var(--accent-cyan); }
+
+/* Card header */
+.tc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+}
+.tc-ticker {
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+.tc-price {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+}
+.tc-meta {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+.tc-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.tc-badge.bmo { background: var(--accent-yellow); color: #000; }
+.tc-badge.amc { background: var(--accent-purple); color: #fff; }
+.tc-badge.tier { background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border); }
+
+/* Card body sections */
+.tc-body { padding: 0.8rem 1rem; }
+.tc-section {
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+.tc-section:last-child { border-bottom: none; margin-bottom: 0; }
+.tc-section-title {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.4rem;
+  font-weight: 700;
+}
+
+/* Key-value rows */
+.tc-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: 0.82rem;
+}
+.tc-key { color: var(--text-secondary); }
+.tc-val { font-family: var(--font-mono); font-weight: 500; }
+
+/* News timeline in card */
+.tc-news-item {
+  font-size: 0.78rem;
+  padding: 3px 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+.tc-news-sentiment {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.tc-news-sentiment.bullish { background: rgba(63,185,80,0.2); color: var(--accent-green); }
+.tc-news-sentiment.bearish { background: rgba(248,81,73,0.2); color: var(--accent-red); }
+.tc-news-sentiment.neutral-sent { background: rgba(139,148,158,0.2); color: var(--text-secondary); }
+
+/* Recommendation box */
+.tc-recommendation {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.4rem;
+}
+.tc-strategy {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--accent-blue);
+  margin-bottom: 0.3rem;
+}
+.tc-rationale {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+}
+
+/* Position management grid */
+.tc-pos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.3rem 1rem;
+}
+
+/* IV richness badges */
+.iv-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.iv-badge.severely-overpriced { background: rgba(248,81,73,0.25); color: var(--accent-red); }
+.iv-badge.overpriced { background: rgba(210,153,34,0.25); color: var(--accent-yellow); }
+.iv-badge.fair { background: rgba(139,148,158,0.2); color: var(--text-secondary); }
+.iv-badge.underpriced { background: rgba(63,185,80,0.2); color: var(--accent-green); }
+.iv-badge.severely-underpriced { background: rgba(57,210,192,0.25); color: var(--accent-cyan); }
+
+/* Expand / collapse */
+.tc-expand-btn {
+  width: 100%;
+  padding: 6px;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: color var(--transition);
+}
+.tc-expand-btn:hover { color: var(--text-primary); }
+.tc-details { display: none; }
+.tc-details.expanded { display: block; }
+
+/* Liquidity indicator */
+.liq-pass { color: var(--accent-green); }
+.liq-warn { color: var(--accent-yellow); }
+.liq-reject { color: var(--accent-red); }
+
+@media (max-width: 900px) {
+  .trade-cards-grid { grid-template-columns: 1fr; }
+}

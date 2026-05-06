@@ -71,39 +71,75 @@ Each analyzed stock generates a detailed card containing:
 
 #### 1. Public.com API (quotes, options expirations, options chains)
 
-1. Go to [public.com/settings/security/api](https://public.com/settings/security/api) and generate a **Secret Key**
-2. Exchange the secret key for an **Access Token**:
+> **Important:** Public.com uses a **two-step authentication flow**. You cannot use your Secret Key directly as a Bearer token — you must first exchange it for an Access Token.
 
-**macOS / Linux:**
+**Step 1 — Generate a Secret Key**
+
+Go to [public.com/settings/security/api](https://public.com/settings/security/api) and generate a **Secret Key**. Copy and save it somewhere safe.
+
+**Step 2 — Exchange the Secret Key for an Access Token**
+
+This POST request returns a short-lived Access Token. The `secret` field must contain the Secret Key from Step 1 (not your password or any other credential).
+
+macOS / Linux:
 ```bash
 curl -X POST https://api.public.com/userapiauthservice/personal/access-tokens \
   -H "Content-Type: application/json" \
   -d '{"secret": "YOUR_SECRET_KEY", "validityInMinutes": 60}'
 ```
 
-**Windows (cmd.exe):**
+Windows (cmd.exe):
 ```cmd
 curl -X POST https://api.public.com/userapiauthservice/personal/access-tokens -H "Content-Type: application/json" -d "{\"secret\": \"YOUR_SECRET_KEY\", \"validityInMinutes\": 60}"
 ```
 
-3. Retrieve your **Account ID**:
+Windows (PowerShell):
+```powershell
+$body = @{ secret = "YOUR_SECRET_KEY"; validityInMinutes = 60 } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri "https://api.public.com/userapiauthservice/personal/access-tokens" `
+  -ContentType "application/json" -Body $body
+```
 
-**macOS / Linux:**
+The response will contain an `accessToken` field — copy that value for the next step.
+
+**Step 3 — Retrieve your Account ID**
+
+Use the **Access Token** from Step 2 (not your Secret Key) as the Bearer token:
+
+macOS / Linux:
 ```bash
 curl https://api.public.com/userapigateway/trading/account \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-**Windows (cmd.exe):**
+Windows (cmd.exe):
 ```cmd
 curl https://api.public.com/userapigateway/trading/account -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-4. Open the platform, click the **Settings** gear icon
-5. Paste your Access Token and Account ID
-6. Click **Save & Reload**
+Windows (PowerShell):
+```powershell
+Invoke-RestMethod -Uri "https://api.public.com/userapigateway/trading/account" `
+  -Headers @{ Authorization = "Bearer YOUR_ACCESS_TOKEN" }
+```
 
-> **Note:** Access tokens expire (default 60 minutes). Regenerate as needed.
+**Step 4 — Configure the platform**
+
+1. Open the platform, click the **Settings** gear icon
+2. Paste your Access Token and Account ID
+3. Click **Save & Reload**
+
+> **Note:** Access tokens expire after the configured validity period (default 60 minutes). You will need to repeat Step 2 to generate a new token when it expires.
+
+#### Troubleshooting Public.com API
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| `401 Unauthorized` or `403 Forbidden` | Using the Secret Key directly as a Bearer token instead of exchanging it for an Access Token first | Complete Step 2 above to get an Access Token, then use that token in Step 3 |
+| `401 Unauthorized` (was working before) | Access Token expired | Repeat Step 2 to generate a fresh token |
+| `curl: (60) SSL certificate problem` | Windows curl using outdated CA bundle | Add `--ssl-no-revoke` flag, or use PowerShell `Invoke-RestMethod` instead |
+| Empty or malformed response | Quoting issue on Windows cmd.exe | Make sure to escape inner double-quotes with `\"` in cmd.exe, or switch to PowerShell |
+| `Could not resolve host` | DNS or network issue | Verify internet connectivity; try `ping api.public.com` |
 
 #### 2. Yahoo Finance Proxy (news + historical prices)
 

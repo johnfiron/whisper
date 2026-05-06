@@ -44,7 +44,7 @@ const Pipeline = (() => {
       const checks = await Promise.all(
         batch.map(async (s) => {
           try {
-            const isOpt = await TradierAPI.isOptionable(s.ticker);
+            const isOpt = await PublicAPI.isOptionable(s.ticker);
             return { stock: s, optionable: isOpt };
           } catch {
             return { stock: s, optionable: false };
@@ -69,7 +69,7 @@ const Pipeline = (() => {
     const tickers = optionable.map(s => s.ticker);
     let quotes = [];
     try {
-      quotes = await TradierAPI.getQuotes(tickers);
+      quotes = await PublicAPI.getQuotes(tickers);
     } catch (err) {
       Logger.error(`Quotes fetch failed: ${err.message}`);
     }
@@ -145,7 +145,7 @@ const Pipeline = (() => {
       try {
         const endDate = stock.date;
         const startDate = DateUtils.toYMD(DateUtils.addDays(DateUtils.parseYMD(stock.date), -365));
-        const history = await TradierAPI.getHistory(stock.ticker, startDate, endDate);
+        const history = await PublicAPI.getHistory(stock.ticker, startDate, endDate);
         result.ivRichness = IVRichness.calculate(
           stock.ticker,
           result.impliedMove.avgIV,
@@ -224,7 +224,6 @@ const Pipeline = (() => {
 
     // FUNCTION 9: Price Targets (all tiers with implied move)
     if (result.impliedMove) {
-      const newsProvider = Config.get('newsProvider');
       result.priceTargets = PriceTargets.calculate({
         ticker: stock.ticker,
         currentPrice,
@@ -238,7 +237,7 @@ const Pipeline = (() => {
         hasWhisper: stock.hasWhisper,
         newsSentiment: result.newsTimeline?.avgSentiment || 0,
         useWhisper: Config.get('useWhisper'),
-        useNews: newsProvider !== 'none',
+        useNews: true,
       });
     }
 

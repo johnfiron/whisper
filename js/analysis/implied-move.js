@@ -13,7 +13,7 @@ const ImpliedMove = (() => {
   async function calculate(ticker, currentPrice, earningsDate) {
     Logger.info(`ImpliedMove: calculating for ${ticker} @ $${currentPrice}`);
 
-    const expirations = await TradierAPI.getOptionsExpirations(ticker);
+    const expirations = await PublicAPI.getOptionsExpirations(ticker);
     if (!expirations.length) {
       throw new Error(`No options expirations found for ${ticker}`);
     }
@@ -24,7 +24,7 @@ const ImpliedMove = (() => {
     }
 
     Logger.dim(`ImpliedMove: ${ticker} using expiry ${frontExpiry}`);
-    const chain = await TradierAPI.getOptionsChain(ticker, frontExpiry);
+    const chain = await PublicAPI.getOptionsChain(ticker, frontExpiry);
     if (!chain.length) {
       throw new Error(`Empty chain for ${ticker} expiry ${frontExpiry}`);
     }

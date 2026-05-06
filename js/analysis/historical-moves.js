@@ -19,7 +19,7 @@ const HistoricalMoves = (() => {
 
     let prices;
     try {
-      prices = await TradierAPI.getHistory(ticker, startDate, endDate);
+      prices = await PublicAPI.getHistory(ticker, startDate, endDate);
     } catch (err) {
       Logger.warn(`HistoricalMoves: could not fetch history for ${ticker}: ${err.message}`);
       return _emptyResult(ticker);

@@ -38,29 +38,19 @@
         <h2>API Configuration</h2>
         <button id="btn-close-settings" class="btn-close">&times;</button>
         <div class="form-group">
-          <label for="input-tradier-token">Tradier API Token</label>
-          <input type="password" id="input-tradier-token" placeholder="Bearer token…">
-          <small>Sandbox or production token. Greeks courtesy of ORATS.</small>
+          <label for="input-public-token">Public.com Access Token</label>
+          <input type="password" id="input-public-token" placeholder="Bearer access token…">
+          <small>Generate at <a href="https://public.com/settings/security/api" target="_blank">public.com/settings/security/api</a>. Exchange your secret key for an access token.</small>
         </div>
         <div class="form-group">
-          <label for="input-tradier-env">Tradier Environment</label>
-          <select id="input-tradier-env">
-            <option value="sandbox">Sandbox (delayed)</option>
-            <option value="production">Production (live)</option>
-          </select>
+          <label for="input-public-account-id">Public.com Account ID</label>
+          <input type="text" id="input-public-account-id" placeholder="Account ID…">
+          <small>Found via GET /userapigateway/trading/account after authenticating.</small>
         </div>
         <div class="form-group">
-          <label for="input-news-provider">News Provider</label>
-          <select id="input-news-provider">
-            <option value="none">None (skip news)</option>
-            <option value="benzinga">Benzinga</option>
-            <option value="alphavantage">Alpha Vantage</option>
-            <option value="polygon">Polygon</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="input-news-token">News API Key</label>
-          <input type="password" id="input-news-token" placeholder="API key…">
+          <label for="input-yahoo-proxy-url">Yahoo Finance Proxy URL</label>
+          <input type="text" id="input-yahoo-proxy-url" placeholder="http://localhost:8901">
+          <small>Local proxy for news &amp; historical data. Run <code>python proxy/server.py</code> to start.</small>
         </div>
         <div class="form-group">
           <label for="input-auto-refresh">Auto-refresh interval (seconds)</label>
@@ -216,7 +206,7 @@
   <script src="js/utils/dates.js"></script>
   <script src="js/utils/math.js"></script>
   <script src="js/utils/logger.js"></script>
-  <script src="js/api/tradier.js"></script>
+  <script src="js/api/public.js"></script>
   <script src="js/api/earnings-calendar.js"></script>
   <script src="js/api/news.js"></script>
   <script src="js/analysis/implied-move.js"></script>

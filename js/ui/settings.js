@@ -6,10 +6,9 @@ const Settings = (() => {
   function init() {
     const config = Config.load();
 
-    _setVal('input-tradier-token', config.tradierToken);
-    _setVal('input-tradier-env', config.tradierEnv);
-    _setVal('input-news-provider', config.newsProvider);
-    _setVal('input-news-token', config.newsToken);
+    _setVal('input-public-token', config.publicAccessToken);
+    _setVal('input-public-account-id', config.publicAccountId);
+    _setVal('input-yahoo-proxy-url', config.yahooProxyUrl);
     _setVal('input-auto-refresh', config.autoRefreshSec);
     _setChecked('input-exclude-illiquid', config.excludeIlliquid);
     _setChecked('input-use-whisper', config.useWhisper);
@@ -24,10 +23,9 @@ const Settings = (() => {
 
     document.getElementById('btn-save-settings')?.addEventListener('click', () => {
       Config.save({
-        tradierToken: _getVal('input-tradier-token'),
-        tradierEnv: _getVal('input-tradier-env'),
-        newsProvider: _getVal('input-news-provider'),
-        newsToken: _getVal('input-news-token'),
+        publicAccessToken: _getVal('input-public-token'),
+        publicAccountId: _getVal('input-public-account-id'),
+        yahooProxyUrl: _getVal('input-yahoo-proxy-url') || 'http://localhost:8901',
         autoRefreshSec: parseInt(_getVal('input-auto-refresh')) || 300,
         excludeIlliquid: _getChecked('input-exclude-illiquid'),
         useWhisper: _getChecked('input-use-whisper'),

@@ -1,12 +1,12 @@
 # EarningsEdge Pro — 3-Day Rolling Earnings Trading Analyzer
 
-A comprehensive, browser-based earnings trading analysis platform that identifies optimal options plays around corporate earnings announcements. Runs entirely client-side and deploys to GitHub Pages for live, always-accessible use.
+A comprehensive, browser-based earnings trading analysis platform that identifies optimal options plays around corporate earnings announcements. Runs entirely client-side and deploys to GitHub Pages for live, always-accessible use. Market data is provided by Public.com API; news and historical price data come from Yahoo Finance via a lightweight local proxy.
 
 ## Live Demo
 
 Visit the deployed site: **[your-username.github.io/your-repo](https://your-username.github.io/your-repo)**
 
-The platform works in **demo mode** without any API keys, displaying the full UI with simulated data. Connect your Tradier API token for live market data.
+The platform works in **demo mode** without any API keys, displaying the full UI with simulated data. Connect your Public.com API token for live market data.
 
 ## Features
 
@@ -21,7 +21,7 @@ The platform works in **demo mode** without any API keys, displaying the full UI
 | 5 | Straddle Backtest | 8-quarter portfolio analysis with Sharpe ratio and confidence bands |
 | 6 | Historical Moves | Analyzes past 8 quarters of earnings-day price reactions |
 | 7 | Term Structure | Forward variance subtraction to isolate event volatility |
-| 8 | Greeks Analysis | Full Greeks with ORATS precision + gamma scalping potential |
+| 8 | Greeks Analysis | Full Greeks with gamma scalping potential |
 | 9 | Price Targets | 5-model weighted ensemble (straddle, stddev, historical, whisper, news) |
 | 10 | Liquidity Screen | Bid-ask spread, OI, volume validation with pass/warn/reject |
 | 11 | News Timeline | 7-day headline analysis with sentiment scoring |
@@ -69,11 +69,42 @@ Each analyzed stock generates a detailed card containing:
 
 ### Live Data Setup
 
-1. **Tradier API Token**: Get a free sandbox token at [developer.tradier.com](https://developer.tradier.com)
-2. Open the platform, click the **Settings** gear icon
-3. Paste your Tradier token and select your environment
-4. Optionally configure a news API (Benzinga, Alpha Vantage, or Polygon)
-5. Click **Save & Reload**
+#### 1. Public.com API (quotes, options expirations, options chains)
+
+1. Go to [public.com/settings/security/api](https://public.com/settings/security/api) and generate a **Secret Key**
+2. Exchange the secret key for an **Access Token**:
+   ```bash
+   curl -X POST https://api.public.com/userapiauthservice/personal/access-tokens \
+     -H "Content-Type: application/json" \
+     -d '{"secret": "YOUR_SECRET_KEY", "validityInMinutes": 60}'
+   ```
+3. Retrieve your **Account ID**:
+   ```bash
+   curl https://api.public.com/userapigateway/trading/account \
+     -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+   ```
+4. Open the platform, click the **Settings** gear icon
+5. Paste your Access Token and Account ID
+6. Click **Save & Reload**
+
+> **Note:** Access tokens expire (default 60 minutes). Regenerate as needed.
+
+#### 2. Yahoo Finance Proxy (news + historical prices)
+
+Public.com does not provide historical OHLC data or news. A lightweight Python proxy using `yfinance` fills this gap.
+
+```bash
+cd proxy
+pip install -r requirements.txt
+python server.py
+# Serves on http://localhost:8901
+```
+
+The proxy provides two endpoints:
+- `GET /api/news/{ticker}?count=50` — recent headlines
+- `GET /api/history/{ticker}?start=YYYY-MM-DD&end=YYYY-MM-DD&interval=1d` — historical OHLC bars
+
+The proxy URL defaults to `http://localhost:8901` and is configurable in Settings.
 
 ### GitHub Pages Deployment
 
@@ -82,10 +113,15 @@ Each analyzed stock generates a detailed card containing:
 3. Set source to `main` branch, root directory
 4. Your site will be live at `https://<username>.github.io/<repo>/`
 
+> When deployed to GitHub Pages, the Yahoo Finance proxy must be running locally or on a reachable server for news and historical data features to work.
+
 ## Architecture
 
 ```
 index.html              Main entry point
+proxy/
+  server.py             Yahoo Finance proxy (FastAPI + yfinance)
+  requirements.txt      Python dependencies
 css/
   main.css              Core layout and theming
   trade-cards.css       Trade card component styles
@@ -98,9 +134,9 @@ js/
     math.js             Financial math (stats, correlations, IV calc)
     logger.js           Pipeline logging to UI and console
   api/
-    tradier.js          Tradier REST API client with rate limiting
+    public.js           Public.com REST API client with rate limiting
     earnings-calendar.js  WhisperNumber scraper + built-in fallback
-    news.js             Multi-provider news API (Benzinga/AV/Polygon)
+    news.js             Yahoo Finance news via local proxy
   analysis/
     implied-move.js     Function 2: ATM straddle implied move
     iv-richness.js      Function 3: IV percentile and classification
@@ -125,10 +161,11 @@ js/
 
 ## API Rate Limits & Constraints
 
-- **Tradier**: Greeks updated hourly via ORATS; sandbox provides delayed data
-- **Rate limiting**: Automatic exponential backoff (1s/2s/4s) with 3 retries
+- **Public.com**: 10 requests/second; single production environment (no sandbox)
+- **Yahoo Finance (via yfinance)**: No hard rate limit; proxy caches news for 5 min and history for 1 hour per ticker
+- **Rate limiting**: Automatic exponential backoff (1s/2s/4s) with 3 retries on 429 or network errors
 - **Batch optimization**: Quotes fetched in batches of 20 symbols
-- **News APIs**: Optional; platform works fully without news data
+- **Token expiry**: Public.com access tokens expire after the configured validity period (default 60 min)
 
 ## Customization
 
@@ -142,7 +179,7 @@ All thresholds are configurable in `js/utils/config.js`:
 
 - Chrome 90+, Firefox 88+, Safari 15+, Edge 90+
 - WebGL required for 3D network visualization
-- No server-side dependencies — runs entirely in the browser
+- Requires a running Yahoo Finance proxy for full functionality (news + historical data)
 
 ## Disclaimer
 

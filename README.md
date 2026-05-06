@@ -74,17 +74,29 @@ Each analyzed stock generates a detailed card containing:
 1. Go to [public.com/settings/security/api](https://public.com/settings/security/api) and generate a **Secret Key**
 2. Exchange the secret key for an **Access Token**:
 
+**macOS / Linux:**
 ```bash
 curl -X POST https://api.public.com/userapiauthservice/personal/access-tokens \
   -H "Content-Type: application/json" \
   -d '{"secret": "YOUR_SECRET_KEY", "validityInMinutes": 60}'
 ```
 
+**Windows (cmd.exe):**
+```cmd
+curl -X POST https://api.public.com/userapiauthservice/personal/access-tokens -H "Content-Type: application/json" -d "{\"secret\": \"YOUR_SECRET_KEY\", \"validityInMinutes\": 60}"
+```
+
 3. Retrieve your **Account ID**:
 
+**macOS / Linux:**
 ```bash
 curl https://api.public.com/userapigateway/trading/account \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Windows (cmd.exe):**
+```cmd
+curl https://api.public.com/userapigateway/trading/account -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 4. Open the platform, click the **Settings** gear icon

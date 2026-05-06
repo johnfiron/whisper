@@ -11,22 +11,34 @@ const EarningsCalendar = (() => {
    */
   async function fetchFromWhisperNumber(weekOfDate) {
     Logger.info('Fetching earnings calendar from WhisperNumber…');
+    const targetUrl = 'https://thewhispernumber.com/calendar';
     const proxies = [
-      'https://api.allorigins.win/raw?url=',
-      'https://corsproxy.io/?',
+      { name: 'corsproxy.org', url: 'https://corsproxy.org/?' },
+      { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' },
+      { name: 'corsproxy.io', url: 'https://corsproxy.io/?' },
     ];
 
     let html = null;
     for (const proxy of proxies) {
       try {
-        const resp = await fetch(proxy + encodeURIComponent('https://thewhispernumber.com/calendar'), {
-          signal: AbortSignal.timeout(15000),
+        Logger.info(`Trying CORS proxy: ${proxy.name}`);
+        const resp = await fetch(proxy.url + encodeURIComponent(targetUrl), {
+          signal: AbortSignal.timeout(20000),
         });
         if (resp.ok) {
-          html = await resp.text();
-          break;
+          const text = await resp.text();
+          if (text.length > 0 && !text.includes('"error"')) {
+            html = text;
+            Logger.info(`Successfully fetched calendar via ${proxy.name} (${text.length} bytes)`);
+            break;
+          }
+          Logger.warn(`Proxy ${proxy.name} returned non-HTML response: ${text.substring(0, 120)}`);
+        } else {
+          Logger.warn(`Proxy ${proxy.name} returned HTTP ${resp.status}`);
         }
-      } catch { /* try next proxy */ }
+      } catch (e) {
+        Logger.warn(`Proxy ${proxy.name} failed: ${e.message || e}`);
+      }
     }
 
     if (!html) {

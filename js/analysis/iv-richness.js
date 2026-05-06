@@ -1,6 +1,6 @@
 /**
  * FUNCTION 3: Calculate IV Richness with Historical Accuracy
- * Uses ORATS-derived Greeks from Tradier for IV percentile and rank.
+ * Uses IV data from Public.com API for IV percentile and rank.
  */
 const IVRichness = (() => {
 

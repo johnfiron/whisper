@@ -1,11 +1,11 @@
 /**
- * FUNCTION 8: Greeks Analysis with ORATS Precision
- * Extracts and computes derived metrics from Tradier's ORATS-backed Greeks.
+ * FUNCTION 8: Greeks Analysis
+ * Extracts and computes derived metrics from Public.com API Greeks.
  */
 const GreeksAnalysis = (() => {
 
   /**
-   * @param {object} option - Tradier option object with greeks
+   * @param {object} option - Option object with greeks
    * @param {number} underlyingPrice
    * @param {number} expectedMovePct - expected move in %
    * @returns {object}

@@ -1,0 +1,49 @@
+/* ===== Charts ===== */
+canvas {
+  max-width: 100%;
+  height: auto !important;
+}
+
+.chart-container {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/* Mini sparkline in tables */
+.sparkline-cell {
+  width: 80px;
+  height: 24px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* IV Heatmap canvas */
+#canvas-iv-heatmap,
+#canvas-sector-corr {
+  width: 100% !important;
+  height: 220px !important;
+}
+
+/* Top trades cards in dashboard */
+.top-trade-mini {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+.top-trade-mini:last-child { border-bottom: none; }
+.top-trade-ticker {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1rem;
+  min-width: 60px;
+}
+.top-trade-strategy {
+  font-size: 0.78rem;
+  color: var(--accent-blue);
+}
+.top-trade-edge {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}

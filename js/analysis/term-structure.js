@@ -12,7 +12,7 @@ const TermStructure = (() => {
   async function analyze(ticker, earningsDate) {
     Logger.info(`TermStructure: analyzing ${ticker}`);
 
-    const expirations = await TradierAPI.getOptionsExpirations(ticker);
+    const expirations = await PublicAPI.getOptionsExpirations(ticker);
     if (expirations.length < 2) {
       Logger.warn(`TermStructure: need >=2 expirations for ${ticker}, got ${expirations.length}`);
       return _emptyResult(ticker);
@@ -30,11 +30,11 @@ const TermStructure = (() => {
     const t2Expiry = sorted[1].str;
 
     const [chain1, chain2] = await Promise.all([
-      TradierAPI.getOptionsChain(ticker, t1Expiry),
-      TradierAPI.getOptionsChain(ticker, t2Expiry),
+      PublicAPI.getOptionsChain(ticker, t1Expiry),
+      PublicAPI.getOptionsChain(ticker, t2Expiry),
     ]);
 
-    const quote = await TradierAPI.getQuote(ticker);
+    const quote = await PublicAPI.getQuote(ticker);
     const price = quote?.last || quote?.prevclose || 0;
     if (!price) return _emptyResult(ticker);
 

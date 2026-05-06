@@ -5,10 +5,9 @@ const Config = (() => {
   const STORAGE_KEY = 'earningsedge_config';
 
   const DEFAULTS = {
-    tradierToken: '',
-    tradierEnv: 'sandbox',
-    newsProvider: 'none',
-    newsToken: '',
+    publicAccessToken: '',
+    publicAccountId: '',
+    yahooProxyUrl: 'http://localhost:8901',
     autoRefreshSec: 300,
     excludeIlliquid: true,
     useWhisper: true,
@@ -60,20 +59,18 @@ const Config = (() => {
     return key ? _config[key] : _config;
   }
 
-  function tradierBaseUrl() {
-    if (!_config) load();
-    return _config.tradierEnv === 'production'
-      ? 'https://api.tradier.com/v1'
-      : 'https://sandbox.tradier.com/v1';
+  function publicBaseUrl() {
+    return 'https://api.public.com';
   }
 
-  function tradierHeaders() {
+  function publicHeaders() {
     if (!_config) load();
     return {
-      Authorization: `Bearer ${_config.tradierToken}`,
+      Authorization: `Bearer ${_config.publicAccessToken}`,
+      'Content-Type': 'application/json',
       Accept: 'application/json',
     };
   }
 
-  return { load, save, get, tradierBaseUrl, tradierHeaders, DEFAULTS };
+  return { load, save, get, publicBaseUrl, publicHeaders, DEFAULTS };
 })();

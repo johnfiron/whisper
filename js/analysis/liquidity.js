@@ -5,7 +5,7 @@
 const LiquidityScreen = (() => {
 
   /**
-   * @param {object} option - Tradier option with bid/ask/volume/open_interest
+   * @param {object} option - Option with bid/ask/volume/open_interest
    * @returns {object}
    */
   function screen(option) {

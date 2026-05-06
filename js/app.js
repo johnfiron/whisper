@@ -23,11 +23,11 @@ const App = (() => {
 
     document.getElementById('btn-refresh')?.addEventListener('click', runAnalysis);
 
-    const token = Config.get('tradierToken');
+    const token = Config.get('publicAccessToken');
     if (token) {
       await runAnalysis();
     } else {
-      Logger.warn('No Tradier API token configured. Click Settings to add your token.');
+      Logger.warn('No Public.com API token configured. Click Settings to add your token.');
       _showDemoMode();
     }
 
@@ -42,14 +42,14 @@ const App = (() => {
     const loadingDetail = document.getElementById('loading-detail');
 
     loading?.classList.remove('hidden');
-    TradierAPI.resetCount();
+    PublicAPI.resetCount();
     Logger.clear();
     Logger.info(`Starting analysis for ${DateUtils.formatDisplay(_currentDate)}`);
 
     const onProgress = (pct, msg) => {
       if (progressFill) progressFill.style.width = `${pct}%`;
       if (loadingMsg) loadingMsg.textContent = msg;
-      if (loadingDetail) loadingDetail.textContent = `API calls: ${TradierAPI.requestCount()}`;
+      if (loadingDetail) loadingDetail.textContent = `API calls: ${PublicAPI.requestCount()}`;
     };
 
     try {
@@ -170,7 +170,7 @@ const App = (() => {
     if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
     const sec = Config.get('autoRefreshSec') || 300;
     _autoRefreshTimer = setInterval(() => {
-      if (DateUtils.isMarketOpen() && Config.get('tradierToken')) {
+      if (DateUtils.isMarketOpen() && Config.get('publicAccessToken')) {
         Logger.info('Auto-refresh triggered');
         runAnalysis();
       }
@@ -224,7 +224,7 @@ const App = (() => {
         newsTimeline: { articles: [], bullish: 0, bearish: 0, neutral: 0, avgSentiment: 0 },
         recommendation: {
           strategy: ['Long Straddle', 'Short Straddle', 'Iron Condor', 'Bull Call Spread'][Math.floor(Math.random() * 4)],
-          rationale: 'Demo mode — connect Tradier API for live analysis.',
+          rationale: 'Demo mode — connect Public.com API for live analysis.',
           secondary: 'Iron Condor',
           entryLimit: MathUtils.round(mockMove * 1.5, 2),
           maxLoss: MathUtils.round(mockMove * 1.5, 2),

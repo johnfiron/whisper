@@ -1,10 +1,13 @@
 """
 Yahoo Finance proxy server for EarningsEdge Pro.
-Serves news headlines and historical OHLC data via yfinance.
+Serves news headlines, historical OHLC data via yfinance,
+and proxies the WhisperNumber earnings calendar page.
 """
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 import yfinance as yf
+import httpx
 import uvicorn
 import time
 from threading import Lock
@@ -105,6 +108,34 @@ def get_history(
     result = {"history": records}
     _set_cached(cache_key, result)
     return result
+
+
+CALENDAR_URL = "https://thewhispernumber.com/calendar"
+CALENDAR_TTL = 600  # 10 minutes
+
+
+@app.get("/api/calendar", response_class=HTMLResponse)
+async def get_calendar():
+    """Proxy the WhisperNumber calendar page server-side to avoid CORS."""
+    cache_key = "calendar:whisper"
+    cached = _get_cached(cache_key, CALENDAR_TTL)
+    if cached is not None:
+        return HTMLResponse(content=cached)
+
+    async with httpx.AsyncClient(
+        follow_redirects=True,
+        timeout=30.0,
+        headers={
+            "User-Agent": "Mozilla/5.0 (compatible; EarningsEdge/1.0)",
+            "Accept": "text/html",
+        },
+    ) as client:
+        resp = await client.get(CALENDAR_URL)
+        resp.raise_for_status()
+
+    html = resp.text
+    _set_cached(cache_key, html)
+    return HTMLResponse(content=html)
 
 
 if __name__ == "__main__":
